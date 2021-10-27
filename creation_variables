@@ -32,3 +32,9 @@ chomeurs_cherchant$chom_long[chomeurs_cherchant$ANCCHOM == "8"] <- c("1")
 crosstab(chomeurs_cherchant$spont, chomeurs_cherchant$ANCCHOM,  missing.include = TRUE, prop.t = TRUE, prop.r = TRUE, prop.c = TRUE,chisq = TRUE, weight = chomeurs_cherchant$EXTRIAN)
 crosstab(chomeurs_cherchant$reseau1, chomeurs_cherchant$ANCCHOM,  missing.include = TRUE, prop.t = TRUE, prop.r = TRUE, prop.c = TRUE,chisq = TRUE, weight = chomeurs_cherchant$EXTRIAN)
 crosstab(chomeurs_cherchant$AB, chomeurs_cherchant$ANCCHOM,  missing.include = TRUE, prop.t = TRUE, prop.r = TRUE, prop.c = TRUE,chisq = TRUE, weight = chomeurs_cherchant$EXTRIAN)
+
+
+#### création du champ ####
+chomeurs <- filter(EE20, EE20$ACTEU == 2)
+chom_stche <- filter(chomeurs, chomeurs$STCHE == 1 | chomeurs$STCHE == 3)
+chom_stche_dem <- filter(chom_stche, chom_stche$DEM == 1)
