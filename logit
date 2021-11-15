@@ -1,0 +1,83 @@
+#### tentatives de logit 
+
+#renommer les CS : 
+chom_stche_dem$CSER <- as.character(chom_stche_dem$CSER)
+chom_stche_dem$CSER  <- fct_recode(chom_stche_dem$CSER ,
+                                "1.agri" = "1",
+                                "2.arti_comm_CE" = "2",
+                                "3.cadres" = "3",
+                                "4.PI" = "4",
+                                "5.employes" = "5",
+                                "6.ouvriers" = "6",
+                                "7.chom_jamaistrav" = "8")  
+chom_stche_dem$SEXE <- as.character(chom_stche_dem$SEXE)
+chom_stche_dem$SEXE  <- fct_recode(chom_stche_dem$SEXE ,
+                                   "1.homme" = "1",
+                                   "2.femme" = "2")
+
+chom_stche_dem$ENFRED <- as.character(chom_stche_dem$ENFRED)
+chom_stche_dem$ENFRED  <- fct_recode(chom_stche_dem$ENFRED ,
+                                   "1.enfant" = "1",
+                                   "2.sans_enfant" = "2")
+
+chom_stche_dem$AGE5 <- as.character(chom_stche_dem$AGE5)
+chom_stche_dem$AGE5  <- fct_recode(chom_stche_dem$AGE5 ,
+                                   "1.15-29" = "15",
+                                   "2.30-39" = "30",
+                                   "3.40-49" = "40",
+                                   "4.50-59" = "50",
+                                   "5.60etplus" = "60")  
+
+# logit avec courte durée comme ref
+chom_stche_dem$DDC <- relevel(factor(chom_stche_dem$DDC), "Courte durée")
+logit_MRspont_DDC <- glm(spont ~ DDC, data = chom_stche_dem, family = binomial("logit"))
+blr_regress(logit_MRspont, odd_conf_limit = TRUE)
+# ici on a longue durée et très longue durée qui sont significatifs 
+
+# logit avec très courte durée comme ref 
+chom_stche_dem$DDC <- relevel(factor(chom_stche_dem$DDC), "Très courte durée")
+logit_MRspont_DDC1 <- glm(spont ~ DDC, data = chom_stche_dem, family = binomial("logit"))
+blr_regress(logit_MRspont, odd_conf_limit = TRUE)
+# ici slt la longue durée est significative 
+
+# logit spont et CS
+chom_stche_dem$CSER <- relevel(factor(chom_stche_dem$CSER), "4.PI")
+logit_MRspont_CS <- glm(spont ~ CSER, data = chom_stche_dem, family = binomial("logit"))
+blr_regress(logit_MRspont_CS, odd_conf_limit = TRUE)
+# évidemment effet non significatif pour les indé en même temps c'est logiquee (donc penser à créer une caté indépendants) 
+# par contre effet peu signficatif pour pi peut-être à interprếter du côté du fait que cadre et pi sont similaires 
+# donc envisager une caté commune pi et care qu'on opposerait aux ouvriers
+# BREF il faut trouver une modalité de ref plus intéressante en terme de significativité
+
+#logit spont et SEXE
+logit_MRspont_SEXE <- glm(spont ~ SEXE, data = chom_stche_dem, family = binomial("logit"))
+blr_regress(logit_MRspont_SEXE, odd_conf_limit = TRUE)
+
+# logit avec explicative CS et sexe et DDC avec courte durée comme ref
+chom_stche_dem$DDC <- relevel(factor(chom_stche_dem$DDC), "Courte durée")
+chom_stche_dem$DDC <- relevel(factor(chom_stche_dem$DDC), "Courte durée")
+
+logit_MRspont_sexe_cs <- glm(spont ~ DDC+SEXE+CSER, data = chom_stche_dem, family = binomial("logit"))
+blr_regress(logit_MRspont_sexe_cs, odd_conf_limit = TRUE)
+# c'est le caca parce que être une femme est encore moins significatif ici genre la p value est désastreuse mdr
+
+
+# logit spont age 
+logit_MRspont_age <- glm(spont ~ AGE5, data = chom_stche_dem, family = binomial("logit"))
+blr_regress(logit_MRspont_age, odd_conf_limit = TRUE)
+# omg que c'est beau comme effet, c'est significatif, décroissant bref tout ce qu'on aime 
+
+
+# logit spont enfant à charge
+logit_MRspont_enfant <- glm(spont ~ ENFRED, data = chom_stche_dem, family = binomial("logit"))
+blr_regress(logit_MRspont_enfant, odd_conf_limit = TRUE)
+# magnifique effet aussi on adore les p-value toutes petites 
+
+
+#logit avec plein de trucs 
+logit_MRspont_sexe_cs_age_enf <- glm(spont ~ DDC+SEXE+CSER+ENFRED+AGE5, data = chom_stche_dem, family = binomial("logit"))
+blr_regress(logit_MRspont_sexe_cs_age_enf, odd_conf_limit = TRUE)
+#significativité de l'effet durée du chômage moins importante quand on ajoute toutes ces explicatives 
+# que se passe-t-il quand on a une significativité qui baisse quand on ajoute des explicatives ?
+# (demander á julie valentin le sang elle aura certainement la réponse)
+# est-ce que c'est parce que en démêlant les effets on se rend compte que certaines explicatives sont plus importantes que d'autres ?
