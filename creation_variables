@@ -1,40 +1,45 @@
 
 EE20 <- read.csv("FD_csv_EEC20.csv", sep=";")
-chomeurs_cherchant <- filter (EE20, EE20$MREC == 1 & EE20$ACTEU == 2)
-
-# création de la variable recherche par le réseau (1 si a fait une recherche via son réseau et 0 autrement)
-chomeurs_cherchant$reseau1 <- c("0")
-chomeurs_cherchant$reseau1[chomeurs_cherchant$MRC == "1"] <- c("1")
-chomeurs_cherchant$reseau1[chomeurs_cherchant$MRD == "1"] <- c("1")
-chomeurs_cherchant$reseau[chomeurs_cherchant$MRDBIS == "1"] <- c("1")
-
-# création de la variable recherche par PE ou intérim
-chomeurs_cherchant$AB <- c("0")
-chomeurs_cherchant$AB[chomeurs_cherchant$MRA == "1"] <- c("1")
-chomeurs_cherchant$AB[chomeurs_cherchant$MRB == "1"] <- c("1")
-
-# création de la variable recherche spontanée 
-chomeurs_cherchant$spont <- c("0")
-chomeurs_cherchant$spont[chomeurs_cherchant$MRG == "1"] <- c("1")
-chomeurs_cherchant$spont[chomeurs_cherchant$MRGBIS == "1"] <- c("1")
-
-# cŕeation de la variable recherche par petite annonce
-chomeurs_cherchant$annonce <- c("0")
-chomeurs_cherchant$annonce[chomeurs_cherchant$MRG == "1"] <- c("1")
-chomeurs_cherchant$annonce[chomeurs_cherchant$MRGBIS == "1"] <- c("1")
-
-# création de la variable chômeur longue durée 
-chomeurs_cherchant$chom_long <- c("0")
-chomeurs_cherchant$chom_long[chomeurs_cherchant$ANCCHOM == "7"] <- c("1")
-chomeurs_cherchant$chom_long[chomeurs_cherchant$ANCCHOM == "8"] <- c("1")
-
-# tri croisés sur plein de variables 
-crosstab(chomeurs_cherchant$spont, chomeurs_cherchant$ANCCHOM,  missing.include = TRUE, prop.t = TRUE, prop.r = TRUE, prop.c = TRUE,chisq = TRUE, weight = chomeurs_cherchant$EXTRIAN)
-crosstab(chomeurs_cherchant$reseau1, chomeurs_cherchant$ANCCHOM,  missing.include = TRUE, prop.t = TRUE, prop.r = TRUE, prop.c = TRUE,chisq = TRUE, weight = chomeurs_cherchant$EXTRIAN)
-crosstab(chomeurs_cherchant$AB, chomeurs_cherchant$ANCCHOM,  missing.include = TRUE, prop.t = TRUE, prop.r = TRUE, prop.c = TRUE,chisq = TRUE, weight = chomeurs_cherchant$EXTRIAN)
 
 
 #### création du champ ####
 chomeurs <- filter(EE20, EE20$ACTEU == 2)
 chom_stche <- filter(chomeurs, chomeurs$STCHE == 1 | chomeurs$STCHE == 3)
 chom_stche_dem <- filter(chom_stche, chom_stche$DEM == 1)
+
+#Création de la variable à expliquer
+
+chom_stche_dem$spont <- c("0")
+chom_stche_dem$spont[chom_stche_dem$MRG=="1"] <- c("1")
+chom_stche_dem$spont[chom_stche_dem$MRGBIS=="1"] <- c("1")
+
+#Recodage de la variable à expliquer
+
+chom_stche_dem$candspont <- fct_recode(chom_stche_dem$spont,
+  "Non" = "0",
+  "Oui" = "1"
+)
+
+#Fréquence / moyenne et écart-type de la variable à expliquer
+
+Fréquence : freq(chom_stche_dem$spont)
+
+#Moyenne et écart-type : 
+bw <- svydesign(ids = ~1, data = chom_stche_dem, weights = ~chom_stche_dem$EXTRIAN)
+svymean(~chom_stche_dem$spont, bw)
+
+#Création de la variable explicative “Durée du chômage” (renommée DDC)
+
+## Recodage de chom_stche_dem$ANCCHOM en chom_stche_dem$DDC
+
+chom_stche_dem$DDC <- as.character(chom_stche_dem$ANCCHOM)
+chom_stche_dem$DDC <- fct_recode(chom_stche_dem$DDC,
+  "Très courte durée" = "1",
+  "Très courte durée" = "2",
+  "Courte durée" = "3",
+  "Courte durée" = "4",
+  "Longue durée" = "5",
+  "Longue durée" = "6",
+  "Très longue durée" = "7",
+  "Très longue durée" = "8"
+)
